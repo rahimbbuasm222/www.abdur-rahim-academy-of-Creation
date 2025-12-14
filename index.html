@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMS - Abdur Rahim Academy</title>
+    <style>
+        /* CSS Design for Professional Look */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1 { margin: 0; font-size: 2.5em; }
+        p { margin-top: 5px; color: #bdc3c7; }
+
+        /* Form Styling */
+        .form-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 90%;
+        }
+        button.add-btn {
+            grid-column: span 2;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        button.add-btn:hover { background-color: #219150; }
+
+        /* Employee List Styling */
+        .employee-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .card h3 { margin: 0 0 10px 0; color: #2c3e50; }
+        .card p { margin: 5px 0; color: #7f8c8d; }
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Abdur Rahim Academy of Creation</h1>
+            <p>Employee Management System (HRM Portal)</p>
+        </header>
+
+        <!-- Add Employee Form -->
+        <div class="form-card">
+            <h2 style="margin-top:0;">Add New Employee</h2>
+            <div class="form-group">
+                <input type="text" id="name" placeholder="Full Name" required>
+                <input type="text" id="position" placeholder="Job Position" required>
+                <input type="text" id="dept" placeholder="Department" required>
+                <input type="number" id="salary" placeholder="Salary" required>
+                <button class="add-btn" onclick="addEmployee()">+ Add Employee</button>
+            </div>
+        </div>
+
+        <!-- Employee Display Area -->
+        <h2 style="color: #2c3e50;">Current Employees</h2>
+        <div id="employee-container" class="employee-list">
+            <!-- Employees will load here via JS -->
+        </div>
+    </div>
+
+    <script>
+        // Frontend Logic to Connect with Backend
+        const apiUrl = 'http://localhost:5000/employees';
+
+        // 1. ডাটা লোড করা
+        async function loadEmployees() {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            const container = document.getElementById('employee-container');
+            container.innerHTML = ''; // Clear previous data
+
+            data.forEach(emp => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <h3>${emp.name}</h3>
+                    <p><strong>Pos:</strong> ${emp.position}</p>
+                    <p><strong>Dept:</strong> ${emp.dept}</p>
+                    <p><strong>Salary:</strong> ${emp.salary} BDT</p>
+                    <button class="delete-btn" onclick="deleteEmployee(${emp.id})">Delete</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 2. নতুন এমপ্লয়ি যোগ করা
+        async function addEmployee() {
+            const name = document.getElementById('name').value;
+            const position = document.getElementById('position').value;
+            const dept = document.getElementById('dept').value;
+            const salary = document.getElementById('salary').value;
+
+            if(name && position) {
+                await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, position, dept, salary })
+                });
+                // ইনপুট খালি করা
+                document.getElementById('name').value = '';
+                document.getElementById('position').value = '';
+                document.getElementById('dept').value = '';
+                document.getElementById('salary').value = '';
+                
+                loadEmployees(); // লিস্ট রিফ্রেশ করা
+            } else {
+                alert("Please fill all fields!");
+            }
+        }
+
+        // 3. এমপ্লয়ি ডিলিট করা
+        async function deleteEmployee(id) {
+            if(confirm('Are you sure you want to remove this employee?')) {
+                await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+                loadEmployees();
+            }
+        }
+
+        // পেজ লোড হলে ডাটা দেখাবে
+        loadEmployees();
+    </script>
+</body>
+</html>
